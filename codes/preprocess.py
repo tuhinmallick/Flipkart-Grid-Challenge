@@ -36,8 +36,8 @@ for index, row in df.iterrows():
     if (index+1)%500 == 0:
         """ if index  == 12814:
             index = idxx + 1 """
-        ax = 'data_imgtrain'+str(index+1)+'.npy'
-        al = 'data_lab'+str(index+1)+'.npy'
+        ax = f'data_imgtrain{str(index + 1)}.npy'
+        al = f'data_lab{str(index + 1)}.npy'
         np.save(ax,data_img)
         np.save(al,data_lab)
         data_img = None
