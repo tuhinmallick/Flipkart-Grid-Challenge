@@ -64,7 +64,7 @@ def residual_network(x):
         # when `cardinality` == 1 this is just a standard convolution
         if cardinality == 1:
             return layers.Conv2D(nb_channels, kernel_size=(3, 3), strides=_strides, padding='same')(y)
-        
+
         assert not nb_channels % cardinality
         _d = nb_channels // cardinality
 
@@ -74,7 +74,7 @@ def residual_network(x):
         for j in range(cardinality):
             group = layers.Lambda(lambda z: z[:, :, :, j * _d:j * _d + _d])(y)
             groups.append(layers.Conv2D(_d, kernel_size=(3, 3), strides=_strides, padding='same')(group))
-            
+
         # the grouped convolutional layer concatenates them as the outputs of the layer
         y = layers.concatenate(groups)
 
@@ -123,7 +123,7 @@ def residual_network(x):
     # conv2
     x = layers.MaxPool2D(pool_size=(3, 3), strides=(2, 2), padding='same')(x)
     for i in range(3):
-        project_shortcut = True if i == 0 else False
+        project_shortcut = i == 0
         x = residual_block(x, 64, 128, _project_shortcut=project_shortcut)
 
     # conv3
@@ -170,24 +170,20 @@ model1.compile(optimizer = adam,loss= ['mean_squared_error'], metrics=['mae'])
 
 pklfile= 'modelweights.pkl'
 try:
-	f= open(pklfile) 	#Python 2
-                   	 
-	weigh= pickle.load(f)
-	f.close()
+    with open(pklfile) as f:
+        weigh= pickle.load(f)
 except:
 
-	f= open(pklfile, 'rb') 	#Python 3            	 
-	weigh= pickle.load(f)           	 
-	f.close()
-
+    with open(pklfile, 'rb') as f:
+        weigh= pickle.load(f)
 #use set_weights to load the modelweights into the model architecture
 model1.set_weights(weigh)
 
 
 for x in range(48*15):
     cnt = ((x%48)*500)+500
-    X_train = np.load('data_imgtrain'+str(cnt)+'.npy')
-    Y_train = np.load('data_lab'+str(cnt)+'.npy')
+    X_train = np.load(f'data_imgtrain{str(cnt)}.npy')
+    Y_train = np.load(f'data_lab{str(cnt)}.npy')
     """  for ori in range(1,4):
         X_data = np.load('data_imgtrain'+str(cnt+(ori*24000))+'.npy')
         Y_data = np.load('data_lab'+str(cnt+(ori*24000))+'.npy')
@@ -202,16 +198,13 @@ for x in range(48*15):
     print((x+1)/48)
     if ((x+1)%48) == 0:
         weigh= model1.get_weights()
-        pklfile= 'modelweights'+str((x+1)/48)+'.pkl'
+        pklfile = f'modelweights{str((x + 1) / 48)}.pkl'
         try:
-	        fpkl= open(pklfile, 'wb')	#Python 3	 
-	        pickle.dump(weigh, fpkl, protocol= pickle.HIGHEST_PROTOCOL)
-	        fpkl.close()
+            with open(pklfile, 'wb') as fpkl:
+                pickle.dump(weigh, fpkl, protocol= pickle.HIGHEST_PROTOCOL)
         except:
-    	    fpkl= open(pklfile, 'w')	#Python 2 	 
-    	    pickle.dump(weigh, fpkl, protocol= pickle.HIGHEST_PROTOCOL)
-    	    fpkl.close()
-
+            with open(pklfile, 'w') as fpkl:
+                pickle.dump(weigh, fpkl, protocol= pickle.HIGHEST_PROTOCOL)
 """ df = pd.read_csv('test.csv')
 c1 = 0
 d1 = 0
